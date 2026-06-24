@@ -217,9 +217,7 @@ namespace FluentValidation.Internal {
 			}
 
 			if (AsyncCondition != null) {
-				if (!await AsyncCondition(context, cancellation)) {
-					return;
-				}
+				throw new AsyncValidatorInvokedSynchronouslyException();
 			}
 
 			var filteredValidators = await GetValidatorsToExecuteAsync(context, cancellation);
