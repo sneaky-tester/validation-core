@@ -41,7 +41,7 @@ public class NotEmptyValidator<T,TProperty> : PropertyValidator<T, TProperty>, I
 			return false;
 		}
 
-		if (value is IEnumerable e && IsEmpty(e)) {
+		if (value is IEnumerable e && !e.GetEnumerator().MoveNext()) {
 			return false;
 		}
 
@@ -50,14 +50,6 @@ public class NotEmptyValidator<T,TProperty> : PropertyValidator<T, TProperty>, I
 
 	protected override string GetDefaultMessageTemplate(string errorCode) {
 		return Localized(errorCode, Name);
-	}
-
-	private static bool IsEmpty(IEnumerable enumerable) {
-		var enumerator = enumerable.GetEnumerator();
-
-		using (enumerator as IDisposable) {
-			return !enumerator.MoveNext();
-		}
 	}
 }
 
