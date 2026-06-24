@@ -1,0 +1,29 @@
+name: SonarQube
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-java@v4
+        with: { distribution: 'temurin', java-version: '17' }
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - run: rm -f global.json
+      - run: dotnet tool install --global dotnet-sonarscanner
+      - env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet sonarscanner begin /k:"sneaky-tester_validation-core" /o:"sneaky-tester" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.pullrequest.key="${{ github.event.number }}" \
+            /d:sonar.pullrequest.branch="${{ github.head_ref }}" \
+            /d:sonar.pullrequest.base="${{ github.base_ref }}"
+          dotnet build src/FluentValidation/FluentValidation.csproj -c Release \
+            -p:TreatWarningsAsErrors=false -p:TargetFrameworks=netstandard2.0
+          dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
